@@ -18,6 +18,18 @@
 
 #include <stdio.h>
 
+/* Return zero if brainfuck program is valid (parentheses are balanced) */
+static int bf_bal(char *program) {
+	int balance = 0;
+	while (*program) {
+		switch (*program++) {
+			case '[': balance++; break;
+			case ']': balance--; break;
+		}
+	}
+	return balance;
+}
+
 /* Given a pointer to after a '[', returns pointer to after corresponding ']' */
 static char *bf_jmp(char *program_ptr) {
 	while (*program_ptr != ']')
@@ -47,7 +59,7 @@ static int *bf_run(char *program_ptr, int *tape_ptr) {
 }
 
 int main(int argc, char **argv) {
-	if (argc != 2)
+	if (argc != 2 || bf_bal(argv[1]))
 		return 1;
 	int tape[30000] = {0};
 	bf_run(argv[1], tape);
