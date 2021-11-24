@@ -18,20 +18,17 @@
 
 #include <stdio.h>
 
-static int tape[30000];
-static int *tape_ptr = tape;
-
-/* Return a pointer to the next ']', skipping subsequent [ ] loops */
-char *bf_jmp(char *program_ptr) {
+/* Given a pointer to after a '[', returns pointer to after corresponding ']' */
+static char *bf_jmp(char *program_ptr) {
 	while (*program_ptr != ']')
 		if (*program_ptr++ == '[')
 			program_ptr = bf_jmp(program_ptr);
 	return program_ptr + 1;
 }
 
-/* Execute the brainfuck program */
-void bf_run(char *program_ptr) {
-	while (*program_ptr) {
+/* Execute brainfuck program and return the new tape pointer */
+static int *bf_run(char *program_ptr, int *tape_ptr) {
+	while (*program_ptr && *program_ptr != ']') {
 		switch (*program_ptr++) {
 			case '>': tape_ptr++; break;
 			case '<': tape_ptr--; break;
@@ -39,19 +36,21 @@ void bf_run(char *program_ptr) {
 			case '-': (*tape_ptr)--; break;
 			case '.': putchar(*tape_ptr); break;
 			case ',': *tape_ptr = getchar(); break;
-			case ']': return;
 			case '[':
 				while (*tape_ptr)
-					bf_run(program_ptr);
+					tape_ptr = bf_run(program_ptr, tape_ptr);
 				program_ptr = bf_jmp(program_ptr);
 				break;
 		}
 	}
+	return tape_ptr;
 }
 
 int main(int argc, char **argv) {
-	if (argc == 2)
-		bf_run(argv[1]);
+	if (argc != 2)
+		return 1;
+	int tape[30000] = {0};
+	bf_run(argv[1], tape);
 	return 0;
 }
 
